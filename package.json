@@ -1,0 +1,10 @@
+{
+  "name": "pol-ln-threads",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Ryan Felix <therjfelix@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "superagent": "^3.8.2"
+  }
+}
