@@ -10,9 +10,9 @@ threads.then(threadArr => {
   //return Promise.all(threadArr.map(analyzeThread))
 })
 .then(results => {
-  const header = Object.keys(results[0]).reduce((str, key) => str + key + ',', '').slice(0, -1);
-  const body = results.map(result => Object.values(result).reduce((str, val) => str + val + ',', '').slice(0, -1))
-                      .reduce(intersperse('\n'), []);
+  const header = Object.keys(results[0]).reduce(intersperse(','));
+  const body = results.map(result => Object.values(result).reduce(intersperse(',')))
+                      .reduce(intersperse('\n'));
   const output = header.concat(body);
   fs.writeFile('results.csv', output, err => console.error(err));
 })
