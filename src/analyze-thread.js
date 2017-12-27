@@ -15,12 +15,29 @@ const analyzeThread = thread => {
       result.PageViews = op.view_count;
       result.DatePosted = new Date(op.created_utc * 1000);
       result.link = op.url;
+      result.jsonLink = `${op.url.slice(0, -1)}.json`;
       const comments = body[1].data.children;
-      const categorizedComments = comments.map(categorizeComment).sort((a, b) => b.data.score - a.data.score);
+      result.NumTopLevelComments = comments.length;
+      const categorizedComments = comments.map(categorizeComment).map(fixScore).sort((a, b) => b.data.ups - a.data.ups);
       // inconsistent variable names are per client requirement
       result.MostUpvotesState = categorizedComments[0].state;
       result.SecondMostUpvotedState = categorizedComments[1].state;
       result.ThirdMostUpvotedState = categorizedComments[2].state;
+      result.MostUpvotesLink = makeLink(categorizedComments[0].data.permalink);
+      result.SecondMostUpvotesLink = makeLink(categorizedComments[1].data.permalink);
+      result.ThirdMostUpvotesLink = makeLink(categorizedComments[2].data.permalink);
+      result.MostUpvotesVotes = categorizedComments[0].data.ups;
+      result.SecondMostUpvotedVotes = categorizedComments[1].data.ups;
+      result.ThirdMostUpvotedVotes = categorizedComments[2].data.ups;
+      result.MostUpvotesAuthor = categorizedComments[0].data.author;
+      result.SecondMostUpvotedAuthor = categorizedComments[1].data.author;
+      result.ThirdMostUpvotedAuthor = categorizedComments[2].data.author;
+      result.MostUpvotesTime = makeDate(categorizedComments[0].data.created_utc);
+      result.SecondMostUpvotedTime = makeDate(categorizedComments[1].data.created_utc);
+      result.ThirdMostUpvotedTime = makeDate(categorizedComments[2].data.created_utc);
+      result.MostUpvotesText = fixText(categorizedComments[0].data.body || 'NO-BODY-0');
+      result.SecondMostUpvotesText = fixText(categorizedComments[1].data.body || 'NO-BODY-1');
+      result.ThirdMostUpvotesText = fixText(categorizedComments[2].data.body || 'NO-BODY-2');
       for(let state of states) {
         result[state] = categorizedComments.filter(comment => comment.state === state).length;
       }
@@ -111,5 +128,21 @@ const dedupWithCounts = arr => {
     count: seen[it],
   }));
 }
+
+const fixScore = comment => {
+  const ups = parseInt(comment.data.ups);
+  if(Number.isNaN(ups)) {
+    comment.data.ups = 0;
+    return comment;
+  }
+  comment.data.ups = ups;
+  return comment;
+}
+
+const makeLink = permalink => `https://www.reddit.com${permalink}`;
+
+const makeDate = redditDate => new Date(redditDate * 1000);
+
+const fixText = text => `"${text.replace(/(\r\n|\n|\r)/gm,' -- ').replace(/"/g, '\'')}"`;
 
 module.exports = analyzeThread;
